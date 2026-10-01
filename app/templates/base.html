@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}FitBuddy{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <header class="topbar">
+    <a class="brand" href="/">FitBuddy</a>
+    <nav>
+      <a href="/">New plan</a>
+      <a href="/feedback">Give feedback</a>
+      <a href="/view-all-users">Coach dashboard</a>
+    </nav>
+  </header>
+  {% block content %}{% endblock %}
+  <footer class="foot">
+    FitBuddy gives general fitness guidance, not medical advice. Check with a doctor before starting a new programme, especially if you have an injury or health condition.
+  </footer>
+  <script src="/static/js/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

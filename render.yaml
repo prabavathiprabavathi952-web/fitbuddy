@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: fitbuddy
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: GOOGLE_API_KEY
+        sync: false          # paste your key in the Render dashboard
+      - key: GEMINI_PRO_MODEL
+        value: gemini-2.5-pro
+      - key: GEMINI_FLASH_MODEL
+        value: gemini-2.5-flash
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        generateValue: true  # Render creates a random password; view it in the dashboard

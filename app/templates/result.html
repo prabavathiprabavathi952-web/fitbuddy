@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}{{ username }}'s plan - FitBuddy{% endblock %}
+{% macro week(p, key, start) %}
+  <div class="plan" data-version="{{ key }}" {% if key != start %}hidden{% endif %}>
+    {% if p.ok %}
+      {% if p.intro %}<div class="md intro">{{ p.intro }}</div>{% endif %}
+      <div class="days" role="tablist">
+        {% for d in p.days %}
+        <button role="tab" class="daybtn {{ 'rest' if d.is_rest }}" data-day="{{ key }}-{{ d.number }}" aria-selected="{{ 'true' if loop.first else 'false' }}">
+          <b>Day {{ d.number }}</b><span>{{ d.title }}</span>
+        </button>
+        {% endfor %}
+      </div>
+      {% for d in p.days %}
+      <article class="daypanel md {{ 'rest' if d.is_rest }}" data-panel="{{ key }}-{{ d.number }}" {% if not loop.first %}hidden{% endif %}>
+        <h3>Day {{ d.number }}: {{ d.title }}</h3>{{ d.html }}
+      </article>
+      {% endfor %}
+      {% if p.notes %}<div class="md notes">{{ p.notes }}</div>{% endif %}
+    {% else %}
+      <div class="md">{{ p.full }}</div>
+    {% endif %}
+  </div>
+{% endmacro %}
+{% block content %}
+{% set start = 'current' if has_update else 'original' %}
+<main class="result">
+  <section class="head">
+    <h1>{{ username }}, here is your week</h1>
+    <p class="meta">User ID <strong>{{ user_id }}</strong>. Keep it to update your plan later. Plan by {{ (plan.updated_source if has_update else plan.plan_source)|source }}.</p>
+    {% if created %}<p class="flash ok" role="status">Your plan is ready and saved.</p>{% endif %}
+    {% if updated %}<p class="flash ok" role="status">Your plan has been updated based on your feedback!</p>{% endif %}
+  </section>
+
+  <section class="stats">
+    <div><span>Goal</span><strong>{{ goal }}</strong></div>
+    <div><span>Intensity</span><strong>{{ intensity|capitalize }}</strong></div>
+    <div><span>Age / weight</span><strong>{{ age }} yrs, {{ weight }} kg</strong></div>
+    {% if bmi %}<div><span>BMI</span><strong>{{ bmi }}</strong><small>{{ bmi_label }}</small></div>{% endif %}
+    <div><span>Water target</span><strong>{{ water }} L / day</strong></div>
+  </section>
+
+  <section class="planwrap">
+    {% if has_update %}
+    <div class="seg versions" role="group" aria-label="Plan version">
+      <label><input type="radio" name="ver" value="current" checked><span>Updated plan</span></label>
+      <label><input type="radio" name="ver" value="original"><span>Original plan</span></label>
+    </div>
+    {{ week(current, 'current', start) }}
+    {% endif %}
+    {{ week(original, 'original', start) }}
+
+    <div class="actions">
+      <a class="btn ghost" href="/download/{{ user_id }}?version={{ 'current' if has_update else 'original' }}">Download as text</a>
+      <button class="btn ghost" type="button" onclick="window.print()">Print plan</button>
+      <a class="btn ghost" href="/">Start a new plan</a>
+    </div>
+  </section>
+
+  <section class="tip">
+    <h2>Nutrition tip</h2>
+    <p>{{ nutrition_tip }}</p>
+  </section>
+
+  <section class="formcard fbcard">
+    <h2>Want to change something?</h2>
+    <form action="/submit-feedback" method="post" class="fbform">
+      <input type="hidden" name="user_id" value="{{ user_id }}">
+      <label>Your feedback
+        <textarea name="feedback" rows="3" required minlength="3" maxlength="1000" placeholder="e.g. more focus on cardio, include more rest days"></textarea>
+      </label>
+      <div class="chips">
+        {% for c in ["More cardio", "Add more rest days", "Add yoga", "Shorter sessions", "Make it harder", "More core work"] %}
+        <button type="button" class="chip" data-fill="{{ c }}">{{ c }}</button>
+        {% endfor %}
+      </div>
+      <button class="btn primary" id="submitBtn" type="submit">Update my plan</button>
+      <p class="hint" id="waitHint" hidden>Rewriting your plan. This can take up to a minute.</p>
+    </form>
+    {% if history %}
+    <h3>Your changes so far</h3>
+    <ol class="history">{% for h in history %}<li>{{ h.text }}</li>{% endfor %}</ol>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}FitBuddy - Plan your week{% endblock %}
+{% block body_class %}home{% endblock %}
+{% block content %}
+<main class="split">
+  <section class="hero">
+    <h1>Seven days.<br>One plan built for you.</h1>
+    <p class="lede">Tell FitBuddy your goal and how hard you want to train. Gemini writes the full week, and you can reshape it with a sentence of feedback.</p>
+    <div class="weekstrip" aria-hidden="true">
+      {% for d, h in [("Mon", 78), ("Tue", 55), ("Wed", 90), ("Thu", 18), ("Fri", 70), ("Sat", 85), ("Sun", 30)] %}
+        <div class="bar"><span style="height: {{ h }}%"></span><em>{{ d }}</em></div>
+      {% endfor %}
+    </div>
+    <form class="lookup" action="/lookup" method="get">
+      <label for="lk">Already have a plan?</label>
+      <div class="row">
+        <input id="lk" type="number" min="1" name="user_id" placeholder="Your user ID" required>
+        <button class="btn ghost" type="submit">Open my plan</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="formcard">
+    <h2>Build my plan</h2>
+    {% if not ai_ready %}
+      <p class="notice">No Gemini key found. Plans come from the built-in planner until you add <code>GOOGLE_API_KEY</code>.</p>
+    {% endif %}
+    {% if errors %}
+      <ul class="errors" role="alert">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    {% endif %}
+    <form id="planForm" action="/generate-workout" method="post">
+      <div class="grid2">
+        <label>Name
+          <input name="username" required maxlength="80" value="{{ form.username or '' }}">
+        </label>
+        <label>User ID
+          <input name="user_id" type="number" min="1" placeholder="{{ next_id }}" value="{{ form.user_id or '' }}">
+          <small>Leave blank to get {{ next_id }}. Remember it for feedback.</small>
+        </label>
+        <label>Age
+          <input name="age" type="number" min="10" max="100" required value="{{ form.age or '' }}">
+        </label>
+        <label>Weight (kg)
+          <input name="weight" type="number" step="0.1" min="20" max="400" required value="{{ form.weight or '' }}">
+        </label>
+        <label>Height (cm), optional
+          <input name="height" type="number" step="0.1" min="80" max="250" value="{{ form.height or '' }}">
+        </label>
+        <label>Experience
+          <select name="experience">
+            {% for v in ["beginner", "intermediate", "advanced"] %}
+            <option value="{{ v }}" {{ "selected" if (form.experience or "beginner") == v }}>{{ v|capitalize }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+      <label>Fitness goal
+        <input name="goal" required maxlength="200" placeholder="e.g. lose belly fat, build muscle, improve flexibility" value="{{ form.goal or '' }}">
+      </label>
+      <fieldset>
+        <legend>Workout intensity</legend>
+        <div class="seg">
+          {% for v in ["low", "medium", "high"] %}
+          <label><input type="radio" name="intensity" value="{{ v }}" {{ "checked" if (form.intensity or "medium") == v }}><span>{{ v|capitalize }}</span></label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Equipment</legend>
+        <div class="seg">
+          {% for v, t in [("gym", "Full gym"), ("home", "Home basics"), ("none", "No equipment")] %}
+          <label><input type="radio" name="equipment" value="{{ v }}" {{ "checked" if (form.equipment or "gym") == v }}><span>{{ t }}</span></label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <label>Injuries or limits, optional
+        <textarea name="notes" rows="2" maxlength="500" placeholder="e.g. sore left knee, no jumping">{{ form.notes or '' }}</textarea>
+      </label>
+      <button class="btn primary" id="submitBtn" type="submit">Generate my plan</button>
+      <p class="hint" id="waitHint" hidden>Writing your week. This can take up to a minute.</p>
+    </form>
+  </section>
+</main>
+{% endblock %}
